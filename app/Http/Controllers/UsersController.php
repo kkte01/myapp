@@ -44,12 +44,12 @@ class UsersController extends Controller
     public function  confirm($code){
         $user = User::whereConfirmCode($code)->first();
         if(!$user){
-            
+
             return redirect('/');
         }
 
         $user->activated = 1;
-        
+
         $user->confirm_code = null;
 
         $user->save();
@@ -77,15 +77,16 @@ class UsersController extends Controller
                 'password' => 'required|confirmed|min:6',
                 'password_confirmation' =>'required'
             ], $message);
-    
+
             $confirmCode = Str::random(60);
-    
+
             $user = User::create([
                 'name' => $request->input('name'),
                 'email' => $request->input('email'),
                 'password' => bcrypt($request->input('password')),
                 'confirm_code' => $confirmCode
             ]);
+
             //컨트롤러가 아닌 이벤트를 설정해 보내기
             // \Mail::send('emails.auth.confirm', compact('user'), function($message) use ($user){
             //     $message->to($user->email);
@@ -94,10 +95,9 @@ class UsersController extends Controller
             //     );
             // });
             event(new \App\Events\UserCreated($user));
-            
+
             auth()->login($user);
-    
+
             return redirect()->route('/');
         }
-    
 }

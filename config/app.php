@@ -180,6 +180,8 @@ return [
         App\Providers\JetstreamServiceProvider::class,
         //Intervention Service Providers
         Intervention\Image\ImageServiceProvider::class,
+        //passport 기능 추가 provider
+        \Laravel\Passport\PassportServiceProvider::class,
 
     ],
 

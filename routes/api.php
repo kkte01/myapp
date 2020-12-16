@@ -4,6 +4,7 @@
 use App\Http\Controllers\Api\v1\ArticlesController;
 use App\Http\Controllers\Api\v1\AttachmentsController;
 use App\Http\Controllers\Api\v1\CommentsController;
+use App\Http\Controllers\Api\v1\LoginController;
 use App\Http\Controllers\Api\v1\WelcomeController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -53,5 +54,12 @@ Route::domain(config('project.api_domain'))->name('Api')->as('api')->group(funct
 
         // 투표
         Route::post('comments/{comment}/votes', [CommentsController::class, 'vote',])->name('comments.vote');
+
+        //로그인 기능 passport Sanctum도 같은거
+        Route::post('login', [LoginController::class, 'store'])->name('login');
+
+        Route::middleware('auth:api')->group(function () {
+            Route::post('logout', [LoginController::class, 'destroy'])->name('logout');
+        });
     });
 });

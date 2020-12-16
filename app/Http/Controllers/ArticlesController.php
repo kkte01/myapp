@@ -166,7 +166,7 @@ class ArticlesController extends Controller implements Cacheable
      * Display the specified resource.
      *
      * @param  int  $id
-     * @return \Illuminate\Http\Response
+     * @return \Illuminate\Contracts\Foundation\Application|\Illuminate\Contracts\View\Factory|\Illuminate\Contracts\View\View|\Illuminate\Http\Response
      */
     public function show(Article $article)
     {
@@ -181,8 +181,9 @@ class ArticlesController extends Controller implements Cacheable
     /**
      * Show the form for editing the specified resource.
      *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
+     * @param int $id
+     * @return \Illuminate\Contracts\Foundation\Application|\Illuminate\Contracts\View\Factory|\Illuminate\Contracts\View\View|\Illuminate\Http\Response
+     * @throws \Illuminate\Auth\Access\AuthorizationException
      */
     public function edit(Article $article)
     {
@@ -197,9 +198,9 @@ class ArticlesController extends Controller implements Cacheable
     /**
      * Update the specified resource in storage.
      *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
+     * @param ArticlesRequest $request
+     * @param $article
+     * @return \Illuminate\Contracts\Foundation\Application|\Illuminate\Http\RedirectResponse|\Illuminate\Http\Response|\Illuminate\Routing\Redirector
      */
     public function update(ArticlesRequest $request, $article)
     {
@@ -214,10 +215,12 @@ class ArticlesController extends Controller implements Cacheable
     /**
      * Remove the specified resource from storage.
      *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
+     * @param Article $article
+     * @return \Illuminate\Http\JsonResponse
+     * @throws \Illuminate\Auth\Access\AuthorizationException
+     * @throws \Exception
      */
-    public function destroy(Article $article)
+    public function destroy(Article $article): \Illuminate\Http\JsonResponse
     {
         //
         //return __METHOD__ . '은 다음 기본 키를 가진 Article  모델을 삭제합니다.' .$id;
