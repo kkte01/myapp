@@ -1,3 +1,4 @@
+
 <div class="media">
     @include('users.partial.avatar', ['user' => $article->user])
 
@@ -7,6 +8,7 @@
                 {{ $article->title }}
             </a>
         </h4>
+
         <p class="text-muted meta__article">
             <a href="{{ gravatar_profile_url($article->user->email) }}">
                 {{ $article->user->name }}
@@ -14,15 +16,14 @@
 
             <small>
                 • {{ $article->created_at->diffForHumans() }}
-                {{-- p.324 에서 추가 --}}
-                • 조회수 {{ $article->view_count }}
+                • {{ trans('forum.articles.form_view_count') }} {{ $article->view_count }}
 
                 @if ($article->comment_count > 0)
-                    • 댓글 {{ $article->comment_count }}
-                    {{-- p.324 에서 끝 --}}
+                    • {{ trans('forum.comments.title') }} {{ $article->comment_count }}
                 @endif
             </small>
         </p>
+
         @if ($viewName === 'articles.index')
             @include('tags.partial.list', ['tags' => $article->tags])
         @endif
@@ -32,4 +33,3 @@
         @endif
     </div>
 </div>
-

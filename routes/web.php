@@ -59,13 +59,15 @@ use App\Http\Controllers\PasswordsController;
 use App\Http\Controllers\SocialController;
 use App\Http\Controllers\AttachmentsController;
 use App\Http\Controllers\CommentsController;
+use App\Http\Controllers\ArticlesController;
 //Route::get('/','WelcomeController@index');
 //8버전은 위와 같이 하면 안되고 밑에 것을 이용해야한다.
 Route::get('/', [WelcomeController::class, 'index'])->name('/');
-
+Route::GET('/locale/{locale}',[WelcomeController::class, 'locale'])->name('locale');
 //또는 경로 직접입력
-use App\Http\Controllers\ArticlesController;
-Route::resource('articles','App\Http\Controllers\ArticlesController');
+Route::group(['middleware'=>'locale'],function() {
+    Route::resource('articles', 'App\Http\Controllers\ArticlesController');
+});
 //사용자 인증 재구성 p 215
 //로그인 루트 재설정
 Route::get('login',[SessionsController::class, 'create'])->name('login');
@@ -92,7 +94,7 @@ Route::get('social/{provider}', [SocialController::class, 'execute'])->name('soc
 //중첩라우트 와 쿼리 분기 p.272
 Route::get('tags/{slug}/articles', [ArticlesController::class, 'index'])->name('tags.articles.index');
 
-// 사진 드롭존 이용 ruote
+// 사진 드롭존 이용 route
 Route::resource('attachments', AttachmentsController::class)->only(['store','destroy']);
 
 //28.3 서버 측 구현 p.305
@@ -101,6 +103,10 @@ Route::resource('comments',CommentsController::class)->only(['update','destroy']
 Route::resource('articles.comments', CommentsController::class)->only(['store']);
 //튜표하기 라우팅
 Route::post('comments/{comment}/votes',[CommentsController::class, 'vote'])->name('comments.vote');
+
+//p.355 code 30-10
+//Route::get('locale',[WelcomeController::class, 'locale'])->name('locale');
+
 
 Route::get('/home', function(){
     return view('home');
@@ -114,31 +120,31 @@ Route::get('/dashboard', function () {
 
 
 //이벤트 실험용 자제척
-Route::get('/event', [EventController::class, 'index'])->name('event.index');
+//Route::get('/event', [EventController::class, 'index'])->name('event.index');
 
 //p.146 이메일 보내기
-Route::get('/mail',function(){
-
-    $article = App\Models\Article::with('user')->find(1);
-
-    return Mail::send(
-        'emails.created',
-        compact('article'),
-        function($message) use ($article){
-            //보내는사람
-            $message->from('kkte03@gmail.com','KKW');
-            //받을 도메인 설정 (여러명일 경우 배열로 보낸다.)
-            $message->to('kkte03@gmail.com');
-            $message->subject('새 글이 등록되었습니다 -' . $article->title);
-            //참조
-            //$message->cc('kkte03@gmail.com'):
-            //숨은 참조
-            $message->bcc('kkte03@gmail.com');
-            //파일첨부 storage안에 적절한 파일을 넣고storage_path함수 안에 그 파일명을 넣어주면 된다.
-            $message->attach(storage_path('download.jpeg'));
-        }
-    );
-});
+//Route::get('/mail',function(){
+//
+//    $article = App\Models\Article::with('user')->find(1);
+//
+//    return Mail::send(
+//        'emails.created',
+//        compact('article'),
+//        function($message) use ($article){
+//            //보내는사람
+//            $message->from('kkte03@gmail.com','KKW');
+//            //받을 도메인 설정 (여러명일 경우 배열로 보낸다.)
+//            $message->to('kkte03@gmail.com');
+//            $message->subject('새 글이 등록되었습니다 -' . $article->title);
+//            //참조
+//            //$message->cc('kkte03@gmail.com'):
+//            //숨은 참조
+//            $message->bcc('kkte03@gmail.com');
+//            //파일첨부 storage안에 적절한 파일을 넣고storage_path함수 안에 그 파일명을 넣어주면 된다.
+//            $message->attach(storage_path('download.jpeg'));
+//        }
+//    );
+//});
 //학생추가 실습관련 라우팅
 //메인화면
 Route::get('/students', [StudentController::class, 'index'])->name('student_index');
@@ -149,34 +155,34 @@ Route::post('/add-student', [StudentController::class, 'addStudent'])->name('add
 //memo 실습 관련 route setting
 //name 설정이 되면 간편하게 view 나 컨트롤러에서 route('name') 으로 호출할 수 있다.
 //메인
-Route::get('/memo', [MemoController::class, 'index'])->name('memo');
-//create
-Route::get('/create', [MemoController::class, 'create'])->name('create');
-//post store
-Route::post('/store', [MemoController::class, 'store'])->name('store');
-//edit
-Route::get('/edit', [MemoController::class, 'edit'])->name('edit');
-//post update
-Route::post('/update', [MemoController::class, 'update'])->name('update');
-//delete
-Route::get('/delete', [MemoController::class, 'delete'])->name('delete');
+//Route::get('/memo', [MemoController::class, 'index'])->name('memo');
+////create
+//Route::get('/create', [MemoController::class, 'create'])->name('create');
+////post store
+//Route::post('/store', [MemoController::class, 'store'])->name('store');
+////edit
+//Route::get('/edit', [MemoController::class, 'edit'])->name('edit');
+////post update
+//Route::post('/update', [MemoController::class, 'update'])->name('update');
+////delete
+//Route::get('/delete', [MemoController::class, 'delete'])->name('delete');
 
 //board 실습 관련 route setting
 
 //게시판 메인
-Route::get('/board', [BoardController::class, 'index'])->name('board_list');
-//create
-Route::get('/board_create', [BoardController::class, 'create'])->name('board_create');
-//post store (insert boards)
-Route::post('/board_store', [BoardController::class, 'store'])->name('board_store');
-//게시글 보여주기
-Route::get('/board_view', [BoardController::class, 'view'])->name('board_view');
-//게시글 수정하기
-Route::get('/board_edit', [BoardController::class, 'edit'])->name('board_edit');
-//post update
-Route::post('/board_update', [BoardController::class, 'update'])->name('board_update');
-//게시글 삭제하기
-Route::get('/board_delete', [BoardController::class, 'delete'])->name('board_delete');
+//Route::get('/board', [BoardController::class, 'index'])->name('board_list');
+////create
+//Route::get('/board_create', [BoardController::class, 'create'])->name('board_create');
+////post store (insert boards)
+//Route::post('/board_store', [BoardController::class, 'store'])->name('board_store');
+////게시글 보여주기
+//Route::get('/board_view', [BoardController::class, 'view'])->name('board_view');
+////게시글 수정하기
+//Route::get('/board_edit', [BoardController::class, 'edit'])->name('board_edit');
+////post update
+//Route::post('/board_update', [BoardController::class, 'update'])->name('board_update');
+////게시글 삭제하기
+//Route::get('/board_delete', [BoardController::class, 'delete'])->name('board_delete');
 //게시글 보여주기
 // Route::post('/ripple_show', [RippleController::class, 'select'])->name('ripple_select');
 // //
@@ -191,10 +197,10 @@ Route::get('/board_delete', [BoardController::class, 'delete'])->name('board_del
 //     return app(ParsedownExtra::class)->text($text);
 // });
 //p.178 컨트롤러로 변경
-Route::get('docs/{file?}',[DocsController::class, 'show'])->name('docs.show');
-
-//p.184 code 20-5
-Route::get('docs/images/{image}', [DocsController::class, 'image'])->where('image','[\pL-\pN._-]+-img-[0-9]{2}.jpeg')->name('docs.image');
+//Route::get('docs/{file?}',[DocsController::class, 'show'])->name('docs.show');
+//
+////p.184 code 20-5
+//Route::get('docs/images/{image}', [DocsController::class, 'image'])->where('image','[\pL-\pN._-]+-img-[0-9]{2}.jpeg')->name('docs.image');
 
 
 

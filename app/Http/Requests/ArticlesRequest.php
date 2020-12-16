@@ -34,18 +34,18 @@ class ArticlesRequest extends FormRequest
             'files.*'=>['mimes:jpg,png,zip,tar', 'max:30000']
         ];
     }
-    public function messages()
-    {
-        return [
-            'required' => '제목은 필수 입력 사항입니다.',
-            'min' => ':attribute은(는)최소 :min글자 이상이 필요합니다.'
-        ];
-    }
-    public function attribute()
-    {
-        return [
-            'title' => '제목',
-            'content' => '본문'
-        ];
-    }
+//    public function messages()
+//    {
+//        return [
+//            'required' => '제목은 필수 입력 사항입니다.',
+//            'min' => ':attribute은(는)최소 :min글자 이상이 필요합니다.'
+//        ];
+//    }
+//    public function attribute()
+//    {
+//        return [
+//            'title' => '제목',
+//            'content' => '본문'
+//        ];
+//    }
 }

@@ -4,9 +4,12 @@ namespace App\Http\Controllers;
 
 use App\Models\Article;
 use App\Models\Comment;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\App;
 use App\Http\Requests\CommentsRequest;
+use Illuminate\Validation\ValidationException;
+
 class CommentsController extends Controller
 {
     //
@@ -22,6 +25,8 @@ class CommentsController extends Controller
             $request->all(),
             ['user_id'=> $request->user()->id]
         ));
+        //이메일 알림을 위한 이벤트 설정
+        event(new \App\Events\CommentsEvent($comment));
 
         // /articles/{articles}#comment={comments}를 반환
         //댓글마다 HTML id를 부여했기 때문에 페이즈를 로드한 후 해당 아이디로 화면을 자동 스크롤 한다. ㅈ\
@@ -37,35 +42,41 @@ class CommentsController extends Controller
     }
     //삭제요청
     public function destroy(Comment $comment){
-        $comment->delete();
+        if($comment->replies()->count() > 0){
+            $comment->delete();
+        }else{
+            $comment->votes()->delete();
+            $comment->forceDelete();
+        }
         return response()->json([],204);
     }
 
     //투표에 관한 함수 code 28-31
     public function vote(Request $request, Comment $comment){
-        $this->validate($request, [
-            'vote' => 'required|in:up,down'
+
+        try {
+            $this->validate($request, [
+                'vote' => 'required|in:up,down',
+            ]);
+        } catch (ValidationException $e) {
+        }
+
+        if ($comment->votes()->whereUserId($request->user()->id)->exists()) {
+            return response()->json(['error' => 'already_voted'], 409);
+        }
+
+        $up = $request->input('vote') == 'up';
+
+        $comment->votes()->create([
+            'user_id'  => $request->user()->id,
+            'up'       => $up,
+            'down'     => ! $up,
+            'voted_at' => Carbon::now()->toDateTimeString(),
         ]);
 
-//        if($comment->votes()->whereUserId($request->user()->id)->exists()){
-//            return response()->json(['error'=> 'already_voted'], 409);
-//        }
-        if($comment->votes()->where('user-id',$request->user()->id)->exists()){
-            return response()->json(['error'=> 'already_voted'], 409);
-        }
-            $up = $request->input('vote') == 'up' ? true :false;
-
-            $comment->votes()->create([
-                'user_id' => $request->user()->id,
-                'up' => $up,
-                'down' => !$up,
-                'voted_at' => \Carbon\Carbon::now()->toDateTimeString()
-            ]);
-
-            return response()->json([
-                'voted' => $request->input('vote'),
-                'value' => $comment->votes()->sum($request->input('vote'))
-            ]);
-
+        return response()->json([
+            'voted' => $request->input('vote'),
+            'value' => $comment->votes()->sum($request->input('vote')),
+        ], 201, [], JSON_PRETTY_PRINT);
     }
 }

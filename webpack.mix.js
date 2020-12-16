@@ -14,7 +14,7 @@ const mix = require('laravel-mix');
 mix.js('resources/js/app.js', 'public/js')
     //.js('resources/asset/js/app.js', 'public/js')
     .js('resources/js/common.js', 'public/js/common.js')
-    .js('node_modules/dropzone/dist/dropzone.js', 'public/js/common.js')
+    .js('node_modules/dropzone/dist/dropzone.js', 'public/js/app.js')
     .postCss('resources/css/app.css', 'public/css', [
         require('postcss-import'),
         require('tailwindcss'),

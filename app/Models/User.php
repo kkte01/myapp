@@ -81,14 +81,4 @@ class User extends Authenticatable
     public function votes(){
         return $this->hasMany(Vote::class);
     }
-
-    public function test($type) {
-        switch ($type) {
-            case 1:
-                $name = 'test';
-                break;
-        }
-
-        return $name;
-    }
 }

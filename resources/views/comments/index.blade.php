@@ -15,6 +15,8 @@
         @include('comments.partial.comment', [
           'parentId' => $comment->id,
           'isReply' => false,
+          'hasChild'=> $comment->replies->count(),
+          'isTrashed' => $comment->trashed(),
         ])
     @empty
     @endforelse
@@ -27,19 +29,16 @@
         $('.btn__delete__comment').on('click', function(e) {
             var commentId = $(this).closest('.item__comment').data('id'),
                 articleId = $('#item__article').data('id');
-            if (confirm('{{ trans('forum.comments.deleting') }}')) {
+                console.log(commentId);
+            if (confirm('댓글을 삭제 하시겠습니까?')) {
                 $.ajax({
-                    type: 'DELETE',
-                    url: "/comments/" + commentId
+                    type:"POST",
+                    url:"/comments/"+commentId,
+                    data:{
+                        _method:"DELETE"
+                    }
                 }).then(function() {
-                    console.log($('#comment_' + commentId).find('.content__comment').first());
-                    $('#comment_' + commentId)
-                        .find('.content__comment')
-                        .first()
-                        .addClass('text-danger')
-                        .fadeIn(1000, function () {
-                            $(this).text('{{ trans('forum.comments.deleted') }}');
-                        });
+                    $('#'+commentId).fadeOut(1000, function (){ $(this).remove(); });
                 });
             }
         });
@@ -59,18 +58,18 @@
         });
         // 투표 저장 요청을 한다.
         $('.btn__vote__comment').on('click', function(e) {
-            var self = $(this),
+            let self = $(this),
                 commentId = self.closest('.item__comment').data('id');
             $.ajax({
                 type: 'POST',
-                url: '/comments/' + commentId + '/votes',
+                url: '/comments/'+commentId+'/votes',
                 data: {
                     vote: self.data('vote')
                 }
             }).then(function (data) {
                 self.find('span').html(data.value).fadeIn();
                 self.attr('disabled', 'disabled');
-                self.siblings().attr('disabled', 'disabled');
+                $('.btn__vote__comment').attr('disabled', 'disabled');
             });
         });
     </script>

@@ -7,7 +7,7 @@
   <meta name="msapplication-tap-highlight" content="no">
   <script src="https://code.jquery.com/jquery-3.5.1.min.js" integrity="sha256-9/aliU8dGd2tb6OSsuzixeV4y/faTqgFtohetphbbj0=" crossorigin="anonymous"></script>
   <!-- SEO -->
-  <meta name="description" content="{{ config('project.description') }}">s
+  <meta name="description" content="{{ config('project.description') }}">
 
   <!-- Facebook Meta -->
   <meta property="og:title" content="{{ config('app.name') }}">
@@ -36,6 +36,7 @@
 
   <!-- Styles -->
   <link href="{{ mix('css/app.css') }}" rel="stylesheet">
+    <link href="{{ mix('css/app2.css') }}" rel="stylesheet">
 
   @yield('style')
 
@@ -49,10 +50,12 @@
       //'currentUrl' => $currentUrl,
     ]); ?>
   </script>
+    <script src="{{ mix('/js/app.js') }}"></script>
+    <script src="{{ mix('/js/common.js') }}"></script>
 </head>
 
 <body id="app-layout">
-
+@include('partials.navigation')
 
   <div class="container">
     @yield('content')
@@ -61,8 +64,6 @@
   @include('partials.footer')
 
   <!-- Scripts -->
-  <script src="{{ mix('js/app.js') }}"></script>
-  <script src="{{ mix('js/common.js') }}"></script>
   @yield('script')
 </body>
 </html>

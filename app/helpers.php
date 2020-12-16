@@ -50,29 +50,114 @@ function format_filesize($bytes){
  * @description : HTML 링크를 반환
  * @return : link
  *********************************************/
-function link_for_sort($column, $text, $params =[]){
-    //입력값 조회하기 입려된 값중에 order라는 값이 있는지 확인
-    $direction = request()->input('order');
-    $reverse = ($direction == 'asc') ? 'desc' : 'asc';
+if (! function_exists('link_for_sort')) {
+    /**
+     * Build HTML anchor tag for sorting
+     *
+     * @param string $column
+     * @param string $text
+     * @param array  $params
+     * @return string
+     */
+    function link_for_sort($column, $text, $params = [])
+    {
+        $direction = request()->input('order');
+        $reverse = ($direction == 'asc') ? 'desc' : 'asc';
 
-    if(request()->input('sort') == $column){
-        $text = sprintf("%s %s",
-            $direction == 'asc'
-                ? '<i class="fa fa-sort-alpha-asc"></i>'
-                : '<i class="fa fa-sort-alpha-desc"></i>',
+        if (request()->input('sort') == $column) {
+            // Update passed $text var, only if it is active sort
+            $text = sprintf(
+                "%s %s",
+                $direction == 'asc'
+                    ? '<i class="fa fa-sort-alpha-asc"></i>'
+                    : '<i class="fa fa-sort-alpha-desc"></i>',
+                $text
+            );
+        }
+
+        $queryString = http_build_query(array_merge(
+            request()->except(['sort', 'order']),
+            ['sort' => $column, 'order' => $reverse],
+            $params
+        ));
+
+        return sprintf(
+            '<a href="%s?%s">%s</a>',
+            urldecode(request()->url()),
+            $queryString,
             $text
         );
     }
+}
 
-    $queryString = http_build_query(array_merge(
-        request()->except(['sort', 'order']),
-        ['sort' => $column, 'order'=>$reverse],
-        $params
-    ));
-    return sprintf(
-        '<a href="%s?%s">%s</a>',
-        urldecode(request()->url()),
-        $queryString,
-        $text
-    );
+if (! function_exists('attachments_path')) {
+    /**
+     * Generate attachments path.
+     *
+     * @param string $path
+     * @return string
+     */
+    function attachments_path($path = null)
+    {
+        return public_path('files'.($path ? DIRECTORY_SEPARATOR.$path : $path));
+    }
+}
+
+/********************************************
+ * @name : cache_key
+ * @description : 요청A와 요청B를 구분할는 캐시 키 생성
+ * @return : $key
+ *********************************************/
+if(!function_exists('cache_key')){
+    function cache_key($base){
+        $key = ($uri = request()->getQueryString())
+            ? $base.'.'.urlencode($uri)
+            : $base;
+        return md5($key);
+    }
+}
+/********************************************
+ * @name : taggable()
+ * @description : 캐시 태그가 가능한지 판단하는 함수
+ * @return : bool
+ *********************************************/
+if(!function_exists('taggable')){
+    function taggable(){
+        return in_array(config('cache.default'), ['memcached', 'redis'], true);
+    }
+}
+/********************************************
+ * @name : current_url()
+ * @description : 쿼리 스트링을 다시 만드는 함수
+ * @return : string
+ *********************************************/
+if(!function_exists('current_url')){
+    function current_url(){
+        if(!request()->has('return')){
+            return request()->fullUrl();
+        }
+
+        return sprintf(
+            '%s?$s',
+            request()->url(),
+            http_build_query(request()->except('return'))
+        );
+    }
+    /********************************************
+     * @name : array_transpose()
+     * @description : 열과줄을 바꾸는 함수
+     * @return : array
+     *********************************************/
+    if(!function_exists('array_transpose')){
+        function array_transpose(array $data){
+            $res = [];
+
+            foreach ($data as $row => $columns){
+                foreach ($columns as $row2 =>$columns2){
+                    $res[$row2][$row] = $columns2;
+                }
+            }
+            return $res;
+        }
+    }
 }

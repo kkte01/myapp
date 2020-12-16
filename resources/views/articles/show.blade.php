@@ -3,7 +3,11 @@
 @section('content')
     @php $viewName = 'articles.index'; @endphp
     <div class="page-header">
-        <h4>포럼 <small> / {{ $article->title }}</small></h4>
+        <h4>
+            <a href="{{ route('articles.index') }}">
+                {{ trans('forum.title') }}
+            </a>
+        </h4>
     </div>
 
     <!--ajax이용을 위해 아이디값선언  -->

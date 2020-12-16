@@ -25,9 +25,9 @@ class SessionsController extends Controller
         ]);
         //존재하지 않은 email과 password 일 경우
         //attempt 함수 bool값을 반환
-        
+
         if(!Auth::attempt($request->only('email', 'password'))){
-        
+
             //return view('sessions.loginfail');
             return back()->withInput();
         }
@@ -46,5 +46,20 @@ class SessionsController extends Controller
         auth()->logout();
 
         return redirect('home');
+    }
+
+    /* Response Methods */
+
+    /**
+     * Make a success response.
+     *
+     * @param string|boolean $message
+     * @return \Illuminate\Http\RedirectResponse|\Illuminate\Routing\Redirector
+     */
+    protected function respondCreated($message)
+    {
+        return ($return = request('return'))
+            ? redirect(urldecode($return))
+            : redirect()->intended(route('home'));
     }
 }

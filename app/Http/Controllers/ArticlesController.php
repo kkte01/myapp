@@ -2,18 +2,28 @@
 
 namespace App\Http\Controllers;
 
+use App\Events\ModelChanged;
 use App\Models\Tag;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Http\Request;
 use \App\Models\Article;
 use \App\Models\User;
 use \App\Http\Requests\ArticlesRequest;
-class ArticlesController extends Controller
+use Illuminate\Support\Facades\Session;
+
+class ArticlesController extends Controller implements Cacheable
 {
     //이것을 이용 사용자 인증 로그인한 사람만 작성,수정,삭제 가능하도록
     //그러나 로그인하지 않고 GET /articles/create URL 열 시 또 다른오류 발생 auth 미들웨어가 리디렉션하려는 GET /login 라우트가없어서 이다.
     //그렇기에 app/Exceptions/Handler.php에서 수정을 한다.
     public function __construct(){
+        parent::__construct();
         $this->middleware('auth', ['except' => ['index', 'show']]);
+    }
+    public function cacheTags(): string
+    {
+        // TODO: Implement cacheTags() method.
+        return 'articles';
     }
 
     /**
@@ -21,23 +31,16 @@ class ArticlesController extends Controller
      *
      * @param Request $request
      * @param null $slug
-     * @return \Illuminate\Http\Response
+     * @return \Illuminate\Contracts\Foundation\Application|\Illuminate\Contracts\View\Factory|\Illuminate\Contracts\View\View|\Illuminate\Http\Response
      */
     public function index(Request $request, $slug = null)
     {
-        //
-        //return __METHOD__ . '은 Ariticle 컬렉션 조회';
-        //즉시 로드
-        //$articles = Article::with('user')->get();
-        //지연 로드
-        // $articles = Article::get();
-        // $articles->load('user');
-        //페이지 네이터
-        //쿼리 같이 순서 뽑기 가능
-        //$articles = Article::orderBy('id','desc')->paginate(5);
+        //p.340 캐시 키 만들기
+        $cacheKey = cache_key('articles.index');
         //$slug 변수값이 있을 때와 없을 때의 쿼리를 분석한다.
         $query = $slug
         ? Tag::whereSlug($slug)->firstOrFail()->articles()
+        //? DB::table('tags')->where('slug', $slug)->firstOrFail()->articles()
         : new Article;
        $query = $query->orderBy(
            $request->input('sort','created_at'),
@@ -49,12 +52,19 @@ class ArticlesController extends Controller
            $query = $query->whereRaw($raw, [$keyword]);
        }
 
-        $articles = $query->latest()->paginate(3);
+        //$articles = $query->latest()->paginate(3);
+        $articles = $this->cache($cacheKey, 5,$query,'paginate',3);
         //compact 배열로 값을 넘긴다.
-        return view('articles.index', compact('articles'));
+        //p 382 code32-6
+        //return view('articles.index', compact('articles'));
+        return $this->respondCollection($articles);
 
     }
 
+    protected function respondCollection(LengthAwarePaginator $articles)
+    {
+        return view('articles.index', compact('articles'));
+    }
     /**
      * Show the form for creating a new resource.
      *
@@ -73,7 +83,7 @@ class ArticlesController extends Controller
      * Store a newly created resource in storage.
      *
      * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
+     * @return \Illuminate\Contracts\Foundation\Application|\Illuminate\Http\RedirectResponse|\Illuminate\Http\Response|\Illuminate\Routing\Redirector
      */
     //사용자 정의 Request를 작성했을 경우 매개변수 클래스를 변경해준다.
     //p.116
@@ -106,10 +116,18 @@ class ArticlesController extends Controller
        //$article = User::whereEmail($request->email)->articles()->create($request->all());
        //dd($request);
 
-       //Illuminate\Http\Request $request 인스턴스는 로그인한 사용자 정보를 이미 가지고 있다.
 
+        //p. 330 코드 29-16
+        $payload = array_merge($request->all(),[
+            'notification'=> $request->has('notification')
+        ]);
+
+        //Illuminate\Http\Request $request 인스턴스는 로그인한 사용자 정보를 이미 가지고 있다.
        //게다가 auth미들웨어는 로그인하지 않은 사용자가 이 메서드에 들어오는것을 막아주므로 nullpoint 예외로부터도 안전하다.
-       $article = $request->user()->articles()->create($request->all());
+       //$article = $request->user()->articles()->create($payload);
+
+       //p.384 code 32-8
+        $article = User::find(1)->articles()->create($payload);
 
         if(!$article){
             //dd($article);
@@ -135,10 +153,15 @@ class ArticlesController extends Controller
                 ]);
             }
         }
-
-        return redirect()->route('articles.index')->with('flash_message', '작성하신 글이 저장되었습니다.');
+        event(new ModelChanged(['articles']));
+        //return redirect()->route('articles.index')->with('flash_message', '작성하신 글이 저장되었습니다.');
+        return $this->respondCreate($article);
     }
 
+    protected function respondCreate(Article $article)
+    {
+        return redirect(route('articles.index', $article->id));
+    }
     /**
      * Display the specified resource.
      *
@@ -150,7 +173,7 @@ class ArticlesController extends Controller
         $article->view_count +=1;
         $article->save();
         //코멘트 값 추가
-        $comments = $article->comments()->with('replies')->whereNull('parent_id')->latest()->get();
+        $comments = $article->comments()->with('replies')->withTrashed()->whereNull('parent_id')->latest()->get();
 
         return view('articles.show', compact('article', 'comments'));
     }
@@ -206,5 +229,4 @@ class ArticlesController extends Controller
         //204 = no content
         return response()->json([], 204);
     }
-
 }

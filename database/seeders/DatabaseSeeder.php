@@ -42,9 +42,11 @@ class DatabaseSeeder extends Seeder
         DB::table('article_tag')->truncate();
         $tags = config('project.tags');
 
-        foreach($tags as $slug=> $name){
+        foreach(array_transpose($tags) as $slug => $names) {
             Tag::create([
-                'name' => $name,
+                'name' => $names['ko'],
+                'ko' => $names['ko'],
+                'en' => $names['en'],
                 'slug' => Str::slug($slug)
             ]);
         }

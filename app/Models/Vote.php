@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\Model;
 class Vote extends Model
 {
     use HasFactory;
-    // public $timestamp = false;
+    public $timestamps = false;
 
     protected $fillable = ['user_id', 'comment_id', 'up', 'down', 'voted_at'];
     protected $dates =['voted_at'];

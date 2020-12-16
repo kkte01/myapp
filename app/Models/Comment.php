@@ -4,18 +4,19 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 
 class Comment extends Model
 {
-    use HasFactory;
+    use HasFactory,SoftDeletes;
     protected $fillable = ['commentable_type','commentable_id','user_id','parent_id','content'];
     protected $with = ['user', 'votes'];
     //Comment::up_count 와 Comment::down_count 는 모델에 없던 속성이다. 서버 측 코드에서 App\Comment::find(1)->up_count 와 같이
     //속성값을 쉽게 조회할 수 있다. 그런데 App\Comment::find(1)->toArray() 또는 toJson()으로 출력할 때는 원래 모델에 없던 속성값은 출력되지 않는다.
     //이때 엘로퀀트의 $appends 프로버티를 이용할 수 있다.
     protected $appends = ['up_count','down_count'];
-
+    protected $dates = ['deleted_at'];
     public function user(){
         return $this->belongsTo(User::class);
     }
