@@ -5,7 +5,7 @@ return [
 //  프로젝트 기본정보-----------------------------------------------
     'url' => 'http://myappdev:8000',
     'api_domain'=> env('API_DOMAIN', 'apimyappdev'),
-    'app_domain'=> env('APP_DAMAIN', 'myappdev'),
+    'app_domain'=> env('APP_DOMAIN', 'myappdev'),
     //----------------------------------------------------------
 //    'description' =>'',
 //    'tags' =>[
@@ -18,7 +18,7 @@ return [
 //      'view_count'=>'조회수',
 //      'created_at'=>'작성일',
 //    ],
-    'cache'=> false,
+    'cache'=> true,
     'locales'=>[
         'ko' => '한국어',
         'en' => 'English'
@@ -43,5 +43,6 @@ return [
             'tip' => 'Tip',
         ],
     ],
+    'etag' => true
 
 ];

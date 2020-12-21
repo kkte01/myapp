@@ -4,11 +4,18 @@ namespace App\Http\Controllers;
 
 use App\Events\ModelChanged;
 use App\Models\Tag;
+use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Contracts\View\Factory;
+use Illuminate\Contracts\View\View;
+use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use \App\Models\Article;
 use \App\Models\User;
 use \App\Http\Requests\ArticlesRequest;
+use Illuminate\Http\Response;
+use Illuminate\Routing\Redirector;
 use Illuminate\Support\Facades\Session;
 
 class ArticlesController extends Controller implements Cacheable
@@ -31,7 +38,7 @@ class ArticlesController extends Controller implements Cacheable
      *
      * @param Request $request
      * @param null $slug
-     * @return \Illuminate\Contracts\Foundation\Application|\Illuminate\Contracts\View\Factory|\Illuminate\Contracts\View\View|\Illuminate\Http\Response
+     * @return Application|Factory|View|Response
      */
     public function index(Request $request, $slug = null)
     {
@@ -57,18 +64,18 @@ class ArticlesController extends Controller implements Cacheable
         //compact 배열로 값을 넘긴다.
         //p 382 code32-6
         //return view('articles.index', compact('articles'));
-        return $this->respondCollection($articles);
+        return $this->respondCollection($articles, $cacheKey);
 
     }
 
-    protected function respondCollection(LengthAwarePaginator $articles)
+    protected function respondCollection(LengthAwarePaginator $articles, $cacheKey)
     {
-        return view('articles.index', compact('articles'));
+        return view('articles.index', compact('articles','cacheKey'));
     }
     /**
      * Show the form for creating a new resource.
      *
-     * @return \Illuminate\Http\Response
+     * @return Response
      */
     public function create()
     {
@@ -82,8 +89,8 @@ class ArticlesController extends Controller implements Cacheable
     /**
      * Store a newly created resource in storage.
      *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Contracts\Foundation\Application|\Illuminate\Http\RedirectResponse|\Illuminate\Http\Response|\Illuminate\Routing\Redirector
+     * @param ArticlesRequest $request
+     * @return Application|RedirectResponse|Response|Redirector
      */
     //사용자 정의 Request를 작성했을 경우 매개변수 클래스를 변경해준다.
     //p.116
@@ -162,19 +169,32 @@ class ArticlesController extends Controller implements Cacheable
     {
         return redirect(route('articles.index', $article->id));
     }
+
     /**
      * Display the specified resource.
      *
-     * @param  int  $id
-     * @return \Illuminate\Contracts\Foundation\Application|\Illuminate\Contracts\View\Factory|\Illuminate\Contracts\View\View|\Illuminate\Http\Response
+     * @param Article $article
+     * @return Application|Factory|View|Response
      */
     public function show(Article $article)
     {
-        $article->view_count +=1;
-        $article->save();
+        if (!is_api_domain()){
+            $article->view_count +=1;
+            $article->save();
+        }
         //코멘트 값 추가
         $comments = $article->comments()->with('replies')->withTrashed()->whereNull('parent_id')->latest()->get();
 
+        //return view('articles.show', compact('article', 'comments'));
+        return $this->respondInstance($article, $comments);
+    }
+    /**
+     * @param Article $article
+     * @param Collection $comments
+     * @return Factory|\Illuminate\View\View
+     */
+    protected function respondInstance(Article $article, Collection $comments)
+    {
         return view('articles.show', compact('article', 'comments'));
     }
 
@@ -182,7 +202,7 @@ class ArticlesController extends Controller implements Cacheable
      * Show the form for editing the specified resource.
      *
      * @param int $id
-     * @return \Illuminate\Contracts\Foundation\Application|\Illuminate\Contracts\View\Factory|\Illuminate\Contracts\View\View|\Illuminate\Http\Response
+     * @return Application|Factory|View|Response
      * @throws \Illuminate\Auth\Access\AuthorizationException
      */
     public function edit(Article $article)
@@ -200,7 +220,7 @@ class ArticlesController extends Controller implements Cacheable
      *
      * @param ArticlesRequest $request
      * @param $article
-     * @return \Illuminate\Contracts\Foundation\Application|\Illuminate\Http\RedirectResponse|\Illuminate\Http\Response|\Illuminate\Routing\Redirector
+     * @return Application|RedirectResponse|Response|Redirector
      */
     public function update(ArticlesRequest $request, $article)
     {

@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\Models\Article;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Foundation\Support\Providers\RouteServiceProvider as ServiceProvider;
 use Illuminate\Http\Request;
@@ -35,6 +36,7 @@ class RouteServiceProvider extends ServiceProvider
      */
     public function boot()
     {
+        parent::boot();
         $this->configureRateLimiting();
 
         $this->routes(function () {
@@ -50,7 +52,9 @@ class RouteServiceProvider extends ServiceProvider
 
         //라우트 모델 바인딩
         //컨트롤러에서 article변수명으로 바로 쓸 수가 있다.
-        Route::model('article', \App\Models\Article::class);
+        Route::model('article', \App\Models\Article::class, function ($id){
+            return Article::whereId(optimus()->decode($id))->first();
+        });
         Route::model('comment', \App\Models\Comment::class);
     }
 

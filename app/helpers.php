@@ -159,5 +159,30 @@ if(!function_exists('current_url')){
             }
             return $res;
         }
+    }/********************************************
+     * @name : is_api_domain()
+     * @description : 현재 HTTP요청의 호스트 이름을 조회하고, apimyappdev로 시작하는지 확인하는 함수
+     * @return : string
+     *********************************************/
+    if(!function_exists('is_api_domain')){
+        function is_api_domain(): bool
+        {
+            return str_starts_with(request()->getHttpHost(), config('project.api_domain'));
+        }
+    }
+    /********************************************
+     * @name : optimus()
+     * @description : 엘로퀀트 아이디를 난수화 하는 함수
+     * @return : string
+     *********************************************/
+    if(!function_exists('optimus')){
+        function optimus($id = null){
+            $factory = app('optimus');
+
+            if(func_num_args() === 0){
+                return $factory;
+            }
+            return $factory->encode($id);
+        }
     }
 }

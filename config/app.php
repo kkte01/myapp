@@ -134,7 +134,7 @@ return [
     |
     */
 
-    'providers' => [
+    'providers' => array(
 
         /*
          * Laravel Framework Service Providers...
@@ -182,8 +182,12 @@ return [
         Intervention\Image\ImageServiceProvider::class,
         //passport 기능 추가 provider
         \Laravel\Passport\PassportServiceProvider::class,
+        //자체 컴포넌트 추가  p.408
+        Appkr\Api\ApiServiceProvider::class,
+        //p.428 code 36-1 설치한 컴포넌트 프로바이더 등록
+        \Fruitcake\Cors\CorsServiceProvider::class,
 
-    ],
+    ),
 
     /*
     |--------------------------------------------------------------------------

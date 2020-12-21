@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\ServiceProvider;
+use Jenssegers\Optimus\Optimus;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -19,6 +20,9 @@ class AppServiceProvider extends ServiceProvider
     public function register()
     {
         //
+        $this->app->singleton('optimus', function (){
+            return new Optimus(1081648643, 1592112299, 2021739750);
+        });
     }
 
     /**

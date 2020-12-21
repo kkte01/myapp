@@ -23,7 +23,7 @@ use Illuminate\Support\Facades\Route;
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
 });
-Route::domain(config('project.api_domain'))->name('Api')->as('api')->group(function (){
+Route::domain(config('project.api_domain'))->middleware('throttle:60,1')->name('Api')->as('api')->group(function (){
     //인증관련 라우트
     Route::prefix('v1')->name('v1')->as('v1')->group(function (){
         //리소스 관련 라우트
@@ -57,7 +57,7 @@ Route::domain(config('project.api_domain'))->name('Api')->as('api')->group(funct
 
         //로그인 기능 passport Sanctum도 같은거
         Route::post('login', [LoginController::class, 'store'])->name('login');
-
+        //토큰이 있는지 검사하는 미들웨어이다.
         Route::middleware('auth:api')->group(function () {
             Route::post('logout', [LoginController::class, 'destroy'])->name('logout');
         });

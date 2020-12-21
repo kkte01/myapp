@@ -37,9 +37,9 @@ class AuthServiceProvider extends ServiceProvider
             return $user->id === $model->user_id;
         });
 
-        Gate::define('is_admin', function ($user, $model) {
-            return $user->rold_id === 1;
-        });
+//        Gate::define('is_admin', function ($user, $model) {
+//            return $user->rold_id === 1;
+//        });
 
         Gate::define('delete', function ($user, $model) {
             return $user->id === $model->user_id;
